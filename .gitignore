@@ -1,0 +1,10 @@
+.vscode
+
+.spyproject
+
+venv
+__pycache__
+*.egg-info
+
+config.json
+*_example.py
