@@ -1,0 +1,28 @@
+{
+    "bot_prefix": "!",
+    "bot_name": "utbot",
+    "webhook_url": "discord webhook url",
+    "steem_ui_url": "https://steemit.com",
+    "posting_key": "bot account steem private posting key",
+    "account": "bot steem account",
+    "reviewers": [
+        "espoem",
+        "elear",
+        "suesa",
+        "techslut",
+        "lovenfreedom",
+        "iamstan",
+        "amosbastian",
+        "abh12345",
+        "knowledges",
+        "jestemkioskiem",
+        "didic",
+        "mcfarhat",
+        "buckydurddle",
+        "favcau",
+        "jmromero",
+        "ms10398",
+        "rosatravels"
+    ],
+    "repo_url": "https://github.com/espoem/utbot"
+}
