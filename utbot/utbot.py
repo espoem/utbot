@@ -25,13 +25,14 @@ from utils import (
     accounts_str_to_md_links,
     build_comment_link,
     get_category,
+    is_utopian_contribution,
     is_utopian_task_request,
     normalize_str,
     parse_command,
 )
 
 # Queue
-queue_comments = Queue(maxsize=0)
+QUEUE_COMMENTS = Queue(maxsize=0)
 
 
 def build_discord_tr_embed(comment, cmds_args):
@@ -113,7 +114,7 @@ def listen_blockchain_ops(opNames: list):
         yield op
 
 
-def listen_blockchain_comments(queue):
+def listen_blockchain_comments():
     for comment_op in listen_blockchain_ops(["comment"]):
         try:
             comment = Comment(f'@{comment_op["author"]}/{comment_op["permlink"]}')
@@ -132,11 +133,11 @@ def listen_blockchain_comments(queue):
                 and is_utopian_task_request(root)
             ):
                 print("added to queue")
-                queue.put_nowait((comment, root))
+                QUEUE_COMMENTS.put_nowait((comment, root))
 
 
 def background():
-    t = Thread(target=listen_blockchain_comments, args=(queue_comments,))
+    t = Thread(target=listen_blockchain_comments)
     t.setDaemon(True)
     t.start()
 
@@ -170,7 +171,7 @@ def send_help_message(comment: Comment, account: str, retry: int = 3):
 def main():
     while True:
         try:
-            queue_item = queue_comments.get_nowait()
+            queue_item = QUEUE_COMMENTS.get_nowait()
         except queue.Empty:
             continue
 
@@ -205,7 +206,7 @@ def main():
         )
         webhook.add_embed(build_discord_tr_embed(root_comment, parsed_cmd))
         webhook.execute()
-        queue_comments.task_done()
+        QUEUE_COMMENTS.task_done()
 
 
 if __name__ == "__main__":
