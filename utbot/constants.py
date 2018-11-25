@@ -11,8 +11,15 @@ with open(os.path.join(here, "config.json"), "r") as f:
     CONFIG = json.load(f)
 
 # Steem config
-STM = Steem(node=NodeList().get_nodes(), keys=CONFIG["posting_key"], timeout=15)
+STM = Steem(
+    node=NodeList().get_nodes(), keys=CONFIG["steem"]["posting_key"], timeout=15
+)
 set_shared_steem_instance(STM)
+ACCOUNT = CONFIG["steem"]["account"]
+
+# DISCORD
+DISCORD_WEBHOOK_TASKS = CONFIG["discord"]["webhooks"]["tasks"]
+DISCORD_WEBHOOK_CONTRIBUTIONS = CONFIG["discord"]["webhooks"]["contributions"]
 
 # UTOPIAN CATEGORIES
 CATEGORIES_PROPERTIES = {
@@ -108,13 +115,14 @@ for k, v in CATEGORIES_PROPERTIES.items():
     }
 
 # BOT PROPERTIES
-CMD_PREFIX = CONFIG["bot_prefix"]
-CMD_BOT_NAME = CONFIG["bot_name"]
+BOT_PREFIX = CONFIG["bot"]["prefix"]
+BOT_NAME = CONFIG["bot"]["name"]
+BOT_REPO_URL = CONFIG["bot"]["url"]
 
 # BOT COMMANDS REGEX
 CMD_RE = re.compile(
     rf"""
-(?P<bot_cmd>{CMD_PREFIX}{CMD_BOT_NAME})     # bot called
+(?P<bot_cmd>{BOT_PREFIX}{BOT_NAME})     # bot called
 """
     r"""
 (?:
@@ -136,8 +144,8 @@ CMD_RE = re.compile(
     flags=re.VERBOSE | re.IGNORECASE | re.MULTILINE,
 )
 
-ACCOUNTS = CONFIG["reviewers"]
-UI_BASE_URL = CONFIG["steem_ui_url"]
+ACCOUNTS = CONFIG["steem"]["reviewers"]
+UI_BASE_URL = CONFIG["steem"]["ui_url"]
 
 # MESSAGES
 MSG_TASK_HELP = (

@@ -11,12 +11,15 @@ from discord_webhook import DiscordEmbed, DiscordWebhook
 
 from constants import (
     ACCOUNTS,
-    CONFIG,
     MSG_TASK_EXAMPLE_MULT_LINES,
     MSG_TASK_EXAMPLE_ONE_LINE,
-    MSG_TASK_HELP,
     TASKS_PROPERTIES,
     UI_BASE_URL,
+    BOT_PREFIX,
+    BOT_NAME,
+    BOT_REPO_URL,
+    ACCOUNT,
+    DISCORD_WEBHOOK_TASKS,
 )
 from utils import (
     accounts_str_to_md_links,
@@ -147,9 +150,7 @@ def build_help_message():
         f"```\n{MSG_TASK_EXAMPLE_MULT_LINES}\n```",
     ]
     msg = "\n\n".join(msg_parts).format(
-        prefix=CONFIG["bot_prefix"],
-        bot_name=CONFIG["bot_name"],
-        bot_docs=CONFIG["repo_url"],
+        prefix=BOT_PREFIX, bot_name=BOT_NAME, bot_docs=BOT_REPO_URL
     )
 
     return msg
@@ -180,15 +181,15 @@ def main():
         if found is None:
             print("No command found")
             continue
-        elif found["help"] is not None and comment["author"] != CONFIG["account"]:
+        elif found["help"] is not None and comment["author"] != ACCOUNT:
             replied = False
             for reply in comment.get_replies():
-                if reply["author"] == CONFIG["account"]:
+                if reply["author"] == ACCOUNT:
                     print("Already replied with help command")
                     replied = True
                     break
             if not replied:
-                send_help_message(comment, CONFIG["account"])
+                send_help_message(comment, ACCOUNT)
                 print("Help command")
             continue
         if found.get("status") is None:
@@ -199,7 +200,7 @@ def main():
             continue
         category = TASKS_PROPERTIES[category]["category"]
         webhook = DiscordWebhook(
-            url=CONFIG["webhook_url"],
+            url=DISCORD_WEBHOOK_TASKS,
             content=f'[{category.upper()}][{found["status"].upper()}] <{build_comment_link(root_comment)}>',
         )
         webhook.add_embed(build_discord_tr_embed(root_comment, found))
