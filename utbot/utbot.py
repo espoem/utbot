@@ -181,6 +181,7 @@ def main():
         parsed_cmd = parse_command(cmd_str)
         if parsed_cmd is None:
             print("No command found")
+            QUEUE_COMMENTS.task_done()
             continue
         elif parsed_cmd["help"] is not None and comment["author"] != ACCOUNT:
             replied = False
@@ -192,12 +193,15 @@ def main():
             if not replied:
                 send_help_message(comment, ACCOUNT)
                 print("Help command")
+            QUEUE_COMMENTS.task_done()
             continue
         if parsed_cmd.get("status") is None:
+            QUEUE_COMMENTS.task_done()
             continue
         root_comment = queue_item[1]
         category = get_category(root_comment, TASKS_PROPERTIES)
         if category is None:
+            QUEUE_COMMENTS.task_done()
             continue
         category = TASKS_PROPERTIES[category]["category"]
         webhook = DiscordWebhook(
