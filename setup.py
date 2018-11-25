@@ -1,13 +1,16 @@
-from setuptools import setup, find_packages
 import os
+
+from setuptools import find_packages, setup
+
 
 def load_description():
     dirname = os.path.dirname(__file__)
-    filename = os.path.join(dirname, 'README.md')
-    with open(filename, 'r') as f:
+    filename = os.path.join(dirname, "README.md")
+    with open(filename, "r") as f:
         return f.read()
 
-requirements = ['beem', 'discord-webhook']
+
+requirements = ["beem", "discord-webhook"]
 
 setup(
     name="utbot",

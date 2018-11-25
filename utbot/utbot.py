@@ -1,7 +1,7 @@
 import queue
+import time
 from queue import Queue
 from threading import Thread
-import time
 
 import beem
 from beem.account import Account
@@ -9,7 +9,15 @@ from beem.blockchain import Blockchain
 from beem.comment import Comment
 from discord_webhook import DiscordEmbed, DiscordWebhook
 
-from constants import ACCOUNTS, CONFIG, TASKS_PROPERTIES, UI_BASE_URL, MSG_TASK_HELP, MSG_TASK_EXAMPLE_ONE_LINE, MSG_TASK_EXAMPLE_MULT_LINES
+from constants import (
+    ACCOUNTS,
+    CONFIG,
+    MSG_TASK_EXAMPLE_MULT_LINES,
+    MSG_TASK_EXAMPLE_ONE_LINE,
+    MSG_TASK_HELP,
+    TASKS_PROPERTIES,
+    UI_BASE_URL,
+)
 from utils import (
     accounts_str_to_md_links,
     build_comment_link,
@@ -90,9 +98,7 @@ def build_discord_tr_embed(comment, cmds_args):
         embed.add_embed_field(name="Assignees", value=assignees_links, inline=False)
 
     if cmds_args.get("note") is not None:
-        embed.add_embed_field(
-            name="Misc", value=f'{cmds_args["note"]}', inline=False
-        )
+        embed.add_embed_field(name="Misc", value=f'{cmds_args["note"]}', inline=False)
 
     return embed
 
@@ -131,17 +137,23 @@ def background():
     t.setDaemon(True)
     t.start()
 
+
 def build_help_message():
     msg_parts = [
         "Hi, you called for help. Brief examples of the bot calls are included below. You can read about the parameters in the bot [description]({bot_docs}).",
-        '<hr/>',
+        "<hr/>",
         f"```\n{MSG_TASK_EXAMPLE_ONE_LINE}\n```",
-        '<hr/>',
-        f"```\n{MSG_TASK_EXAMPLE_MULT_LINES}\n```"
+        "<hr/>",
+        f"```\n{MSG_TASK_EXAMPLE_MULT_LINES}\n```",
     ]
-    msg = "\n\n".join(msg_parts).format(prefix=CONFIG["bot_prefix"], bot_name=CONFIG["bot_name"], bot_docs=CONFIG["repo_url"])
+    msg = "\n\n".join(msg_parts).format(
+        prefix=CONFIG["bot_prefix"],
+        bot_name=CONFIG["bot_name"],
+        bot_docs=CONFIG["repo_url"],
+    )
 
     return msg
+
 
 def send_help_message(comment: Comment, account: str, retry: int = 3):
     while retry > 0:
@@ -152,6 +164,7 @@ def send_help_message(comment: Comment, account: str, retry: int = 3):
             retry -= 1
         else:
             break
+
 
 def main():
     while True:

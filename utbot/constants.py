@@ -1,6 +1,6 @@
-import re
 import json
 import os
+import re
 
 from beem import Steem
 from beem.instance import set_shared_steem_instance
