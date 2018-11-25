@@ -157,15 +157,31 @@ def build_help_message():
     return msg
 
 
-def send_help_message(comment: Comment, account: str, retry: int = 3):
+def build_missing_status_message():
+    msg_parts = [
+        f"Hello, we detected that you wanted to call {BOT_NAME} without defining the current status of the task. Please read the bot's [description]({BOT_REPO_URL}) to know about the bot valid parameters."
+    ]
+    msg = "\n\n".join(msg_parts)
+    return msg
+
+
+def reply_message(parent_comment: Comment, message: str, account: str, retry: int = 3):
     while retry > 0:
         try:
-            comment.reply(body=build_help_message(), author=account)
+            parent_comment.reply(body=message, author=account)
         except:
             time.sleep(3)
             retry -= 1
         else:
             break
+
+
+def send_help_message(comment: Comment, account: str, retry: int = 3):
+    reply_message(comment, build_help_message(), account, retry)
+
+
+def send_missing_status_message(comment: Comment, account: str, retry: int = 3):
+    reply_message(comment, build_missing_status_message(), account, retry)
 
 
 def main():
@@ -196,6 +212,8 @@ def main():
             QUEUE_COMMENTS.task_done()
             continue
         if parsed_cmd.get("status") is None:
+            if len([x for x in parsed_cmd if parsed_cmd[x] is not None]) > 1:
+                send_missing_status_message(comment, ACCOUNT)
             QUEUE_COMMENTS.task_done()
             continue
         root_comment = queue_item[1]
