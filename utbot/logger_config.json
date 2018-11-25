@@ -12,7 +12,7 @@
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "simple",
-            "filename": "log.txt",
+            "filename": "debug.log",
             "encoding": "utf8",
             "maxBytes": 8388608,
             "backupCount": 3
