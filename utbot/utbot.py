@@ -35,7 +35,14 @@ from utils import (
 QUEUE_COMMENTS = Queue(maxsize=0)
 
 
-def build_discord_tr_embed(comment, cmds_args):
+def build_discord_tr_embed(comment: dict, cmds_args: dict) -> DiscordEmbed:
+    """Creates a Discord embed for a Utopian task request.
+
+    :param comment: Steem root post with task request
+    :type comment: dict
+    :param cmds_args: Parsed bot commands and arguments
+    :type cmds_args: dict
+    """
     category = get_category(comment, TASKS_PROPERTIES)
     color = 0
     type_ = None
@@ -108,6 +115,11 @@ def build_discord_tr_embed(comment, cmds_args):
 
 
 def listen_blockchain_ops(opNames: list):
+    """Listens to Steem blockchain and yields specified operations.
+
+    :param opNames: List of operations to yield
+    :type opNames: list
+    """
     bc = Blockchain(mode="head")
     block_num = bc.get_current_block_num()
     for op in bc.stream(opNames=opNames, start=block_num, threading=True):
@@ -115,6 +127,9 @@ def listen_blockchain_ops(opNames: list):
 
 
 def listen_blockchain_comments():
+    """Listens to blockchain for comments by specified accounts at Utopian task request posts and put them to a queue.
+
+    """
     for comment_op in listen_blockchain_ops(["comment"]):
         try:
             comment = Comment(f'@{comment_op["author"]}/{comment_op["permlink"]}')
@@ -166,6 +181,17 @@ def build_missing_status_message():
 
 
 def reply_message(parent_comment: Comment, message: str, account: str, retry: int = 3):
+    """Replies to a comment with a specific message.
+
+    :param parent_comment: Parent comment to reply to
+    :type parent_comment: Comment
+    :param message: Message content
+    :type message: str
+    :param account: Author of the reply
+    :type account: str
+    :param retry: Number of retries, defaults to 3
+    :param retry: int, optional
+    """
     while retry > 0:
         try:
             parent_comment.reply(body=message, author=account)
