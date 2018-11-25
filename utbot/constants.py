@@ -11,7 +11,7 @@ with open(os.path.join(here, "config.json"), "r") as f:
     CONFIG = json.load(f)
 
 # Steem config
-STM = Steem(node=NodeList().get_nodes(), timeout=15)
+STM = Steem(node=NodeList().get_nodes(), keys=CONFIG["posting_key"], timeout=15)
 set_shared_steem_instance(STM)
 
 # UTOPIAN CATEGORIES
@@ -127,7 +127,7 @@ CMD_RE = re.compile(
         | (?:description:?\s+?"(?P<description>.+?)")     # description "text"
         | (?:note:?\s+?"(?P<note>.+?)")     # note "text"
         | (?:skills:?\s+?"(?P<skills>(?:[-_\w ]+(?:\s*?,?\s*?))+)")   # skills skillone[, skilltwo, ...]
-        | (?:discord:?\s+?(?P<discord><@!\d+>|.+?[#]\d{4}))                 # <@00000000000> | username#0000
+        | (?:discord:?\s+?(?P<discord><@!?\d+>|.+?[#]\d{4}))                 # <@00000000000> | username#0000
         | (?:deadline:?\s+?(?P<deadline>\d{4}-\d{2}-\d{2})(?:T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{4})?)?) # deadline YYYY-MM-DD (considers only date)
         | (?:assignees:?\s+?"(?P<assignees>@(?:[\w\d.-]+(?:\s*?,\s*?)?)+)")  # naive regex
     );?)*
@@ -138,3 +138,42 @@ CMD_RE = re.compile(
 
 ACCOUNTS = CONFIG["reviewers"]
 UI_BASE_URL = CONFIG["steem_ui_url"]
+
+# MESSAGES
+MSG_TASK_HELP = (
+    "This is a help message for {prefix}{bot_name}."
+    "\n\nCurrent valid arguments are:"
+    "\n\n- status: [open, in progress, closed]"
+    "\n  - current status of the task; ***required***"
+    "\n- bounty: value name[, value name, ...]"
+    "\n  - set the liquid bounty you can pay for the task; ***optional***"
+    '\n- description: "task short description"'
+    "\n  - describe the task in one or two sentences; must be enclosed in double quotes; ***optional***"
+    '\n- skills: "skill1[, skill2, skill3]"'
+    "\n  - set of required skills to solve the task; skills must be enclosed in double quotes and separated by a comma; ***optional***"
+    "\n- discord: <@00000000000000> | username#0000"
+    "\n  - discord handle (user id or name); ***optional***"
+    "\n- deadline: YYYY-MM-DD"
+    "\n  - due date of the task; ***optional***"
+    "\n- assignees: @name1[, @name2, ...]"
+    "\n  - set of people (steem usernames) assigned to the task if it is in progress; ***optional***"
+    '\n- note: "additional notes"'
+    "\n  - miscellaneous notes; must be enclosed in double quotes; ***optional***"
+)
+
+TASK_EXAMPLE = {
+    "status": "open",
+    "bounty": "10 SBD",
+    "description": '"Short description of the task"',
+    "skills": '"Python, Flask, Steem"',
+    "deadline": "2018-01-01",
+    "discord": "<@351997733646761985>",
+}
+
+MSG_TASK_EXAMPLE_MULT_LINES = "{prefix}{bot_name}\n" + "\n".join(
+    f"{k}: {v}" for k, v in TASK_EXAMPLE.items()
+)
+
+MSG_TASK_EXAMPLE_ONE_LINE = "{prefix}{bot_name} " + " ".join(
+    f"--{k} {v}" for k, v in TASK_EXAMPLE.items()
+)
