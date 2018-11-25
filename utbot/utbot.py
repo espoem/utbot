@@ -177,11 +177,11 @@ def main():
         comment: Comment = queue_item[0]
         cmd_str = comment["body"]
         print(cmd_str)
-        found = parse_command(cmd_str)
-        if found is None:
+        parsed_cmd = parse_command(cmd_str)
+        if parsed_cmd is None:
             print("No command found")
             continue
-        elif found["help"] is not None and comment["author"] != ACCOUNT:
+        elif parsed_cmd["help"] is not None and comment["author"] != ACCOUNT:
             replied = False
             for reply in comment.get_replies():
                 if reply["author"] == ACCOUNT:
@@ -192,7 +192,7 @@ def main():
                 send_help_message(comment, ACCOUNT)
                 print("Help command")
             continue
-        if found.get("status") is None:
+        if parsed_cmd.get("status") is None:
             continue
         root_comment = queue_item[1]
         category = get_category(root_comment, TASKS_PROPERTIES)
@@ -201,9 +201,9 @@ def main():
         category = TASKS_PROPERTIES[category]["category"]
         webhook = DiscordWebhook(
             url=DISCORD_WEBHOOK_TASKS,
-            content=f'[{category.upper()}][{found["status"].upper()}] <{build_comment_link(root_comment)}>',
+            content=f'[{category.upper()}][{parsed_cmd["status"].upper()}] <{build_comment_link(root_comment)}>',
         )
-        webhook.add_embed(build_discord_tr_embed(root_comment, found))
+        webhook.add_embed(build_discord_tr_embed(root_comment, parsed_cmd))
         webhook.execute()
         queue_comments.task_done()
 
