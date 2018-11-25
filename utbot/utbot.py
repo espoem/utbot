@@ -86,6 +86,9 @@ def build_discord_tr_embed(comment: dict, cmds_args: dict) -> DiscordEmbed:
         status = cmds_args["status"]
         embed.add_embed_field(name="Status", value=status.upper(), inline=True)
 
+    if not (status and status.upper() == "CLOSED"):
+        return embed
+
     if cmds_args.get("skills"):
         skills = normalize_str(cmds_args["skills"])
         embed.add_embed_field(name="Required skills", value=skills, inline=True)
