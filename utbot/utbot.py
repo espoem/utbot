@@ -61,9 +61,9 @@ def build_discord_tr_embed(comment: dict, cmds_args: dict) -> DiscordEmbed:
     description_parts = []
     if cmds_args.get("description") is not None:
         description_parts.append(cmds_args["description"].strip())
-    description_parts.append(
-        f'*You can read [here]({build_comment_link(comment)}) the whole task by **{comment["author"]}**.*'
-    )
+    # description_parts.append(
+    #     f'*You can read [here]({build_comment_link(comment)}) the whole task by **{comment["author"]}**.*'
+    # )
 
     description = "\n\n".join(description_parts)
     embed = DiscordEmbed(title=title, description=description)
