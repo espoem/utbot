@@ -14,7 +14,7 @@ Installation steps:
 
 *Utbot is not distributed in PyPi at the moment but you can install it locally.*
 
-```
+```bash
 python -m venv venv
 . venv/bin/activate
 (venv) python install -e .
@@ -43,13 +43,13 @@ A bot will respond with a short message that will navigate you to bot's potentia
 
 Utbot handles a few of different parameters format. The intention was to allow to use inline format and also accept a format where each parameter is written on a separate line.
 
-```
+```bash
 !utbot --status open --bounty 10 SBD --description "Short description of the task" --skills "Python, Flask, Steem" --deadline 2018-01-01 --discord <@351997733646761985>
 ```
 
 <hr/>
 
-```
+```bash
 !utbot
 status: open
 bounty: 10 SBD
@@ -76,3 +76,12 @@ discord: <@351997733646761985>
 ## Discord Message Examples
 
 ![example1](https://i.imgsafe.org/ac/aca679c48a.png)
+
+## TODO
+
+- [ ] Implement webhook for contributions
+    - add contribution when reviewed
+    - include basic information about the contribution
+- [ ] Add "new, update, remove" kind of commands to the bot
+- [ ] Tests
+- [ ] (Semi-)automatically submit a task message when reviewed but the reviewer did not call the bot
