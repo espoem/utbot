@@ -1,0 +1,37 @@
+{
+    "bot": {
+        "prefix": "!",
+        "name": "utbot",
+        "url": "https://github.com/espoem/utbot"
+    },
+    "steem": {
+        "ui_url": "https://steemit.com",
+        "posting_key": "posting key",
+        "account": "espoem",
+        "reviewers": [
+            "espoem",
+            "elear",
+            "suesa",
+            "techslut",
+            "lovenfreedom",
+            "iamstan",
+            "amosbastian",
+            "abh12345",
+            "knowledges",
+            "jestemkioskiem",
+            "didic",
+            "mcfarhat",
+            "buckydurddle",
+            "favcau",
+            "jmromero",
+            "ms10398",
+            "rosatravels"
+        ]
+    },
+    "discord": {
+        "webhooks": {
+            "tasks": "discord webhook url",
+            "contributions": "discord webhook url"
+        }
+    }
+}

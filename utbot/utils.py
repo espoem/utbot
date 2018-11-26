@@ -1,6 +1,13 @@
 import typing
 
+import logging
+import logging.config
+import os
+import json
+
 from constants import CATEGORIES_PROPERTIES, CMD_RE, TASKS_PROPERTIES, UI_BASE_URL
+
+LOGGER = logging.getLogger(__name__)
 
 
 def parse_command(cmd_str: str) -> dict:
@@ -14,7 +21,7 @@ def parse_command(cmd_str: str) -> dict:
     found = CMD_RE.search(cmd_str)
     if not found:
         return None
-    print(found.groupdict())
+    LOGGER.info("Command parsed. %s", found.groupdict())
     return found.groupdict()
 
 
@@ -61,3 +68,11 @@ def accounts_str_to_md_links(str_line: str) -> str:
         if name
     ]
     return ", ".join(items)
+
+
+def setup_logger():
+    dirname = os.path.dirname(__file__)
+    with open(os.path.join(dirname, "logger_config.json"), "r") as log_config:
+        config_dict = json.load(log_config)
+
+    logging.config.dictConfig(config_dict)
