@@ -61,9 +61,9 @@ def build_discord_tr_embed(comment: dict, cmds_args: dict) -> DiscordEmbed:
     description_parts = []
     if cmds_args.get("description") is not None:
         description_parts.append(cmds_args["description"].strip())
-    description_parts.append(
-        f'*You can read [here]({build_comment_link(comment)}) the whole task by **{comment["author"]}**.*'
-    )
+    # description_parts.append(
+    #     f'*You can read [here]({build_comment_link(comment)}) the whole task by **{comment["author"]}**.*'
+    # )
 
     description = "\n\n".join(description_parts)
     embed = DiscordEmbed(title=title, description=description)
@@ -139,6 +139,8 @@ def listen_blockchain_comments():
 
     """
     for comment_op in listen_blockchain_ops(["comment"]):
+        if comment_op["parent_author"] or comment_op["author"] not in ACCOUNTS:
+            continue
         try:
             comment = Comment(f'@{comment_op["author"]}/{comment_op["permlink"]}')
         except beem.exceptions.ContentDoesNotExistsException:
@@ -150,15 +152,10 @@ def listen_blockchain_comments():
             LOGGER.exception()
         else:
             root = comment.get_parent()
-            if comment.author in ACCOUNTS:
-                LOGGER.debug("%s, %s", comment["url"], root["url"])
-            if (
-                comment.author in ACCOUNTS
-                and comment["depth"] > 0
-                and is_utopian_task_request(root)
-            ):
+            LOGGER.debug("%s, %s", comment["url"], root["url"])
+            if is_utopian_task_request(root):
                 LOGGER.info(
-                    "Added to queue to process - %s %s", comment["url"], root["url"]
+                    "Added to comments queue - %s %s", comment["url"], root["url"]
                 )
                 QUEUE_COMMENTS.put_nowait((comment, root))
 
