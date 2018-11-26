@@ -20,7 +20,14 @@ python -m venv venv
 (venv) python install -e .
 ```
 
-You need to set your bot's steem account and its private posting key, and the webhook URL.
+You need to set keys to a Steem account and a Discord webhooks URLs. You can set them either in a `./utbot/config.json` file or as an environment variables. You can also use `.env` file to keep your environment variables.
+
+```bash
+UT_PK= bot private posting key
+UT_ACCOUNT= bot steem account
+UT_WH_TASKS= discor webhook url
+UT_WH_CONTRS= discord webhook url
+```
 
 ## Commands
 
@@ -64,7 +71,7 @@ discord: <@351997733646761985>
 | deadline | 2018-01-01 | a date in format YYYY-MM-DD | optional |
 | assignees | "\@steemname1, \@steemname2" | Steem mentions of assigned people; valid only for a task that is in progress | optional |
 
-*You can obtain the Discord user ID by submitting `\@usermention` in a channel they are in or after enabling developers tools you can right click on a user's avatar and copy the ID.*
+*You can obtain the Discord user ID by submitting `\@usermention` in a channel they are in or you can right click on a user's avatar and copy the ID after enabling developers tools.*
 
 ## Discord Message Examples
 
