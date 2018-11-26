@@ -5,10 +5,24 @@ import re
 from beem import Steem
 from beem.instance import set_shared_steem_instance
 from beem.nodelist import NodeList
+from dotenv import load_dotenv, find_dotenv
 
+load_dotenv(find_dotenv())
 here = os.path.dirname(__file__)
+
+# Load config
 with open(os.path.join(here, "config.json"), "r") as f:
     CONFIG = json.load(f)
+# load keys from ENV if not defined in config file
+if not CONFIG["steem"]["posting_key"]:
+    CONFIG["steem"]["posting_key"] = os.environ.get("UT_PK")
+if not CONFIG["steem"]["account"]:
+    CONFIG["steem"]["account"] = os.environ.get("UT_ACCOUNT")
+if not CONFIG["discord"]["webhooks"]["tasks"]:
+    CONFIG["discord"]["webhooks"]["tasks"] = os.environ.get("UT_WH_TASKS")
+if not CONFIG["discord"]["webhooks"]["contributions"]:
+    CONFIG["discord"]["webhooks"]["contributions"] = os.environ.get("UT_WH_CONTRS")
+
 
 # Steem config
 STM = Steem(

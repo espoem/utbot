@@ -6,8 +6,8 @@
     },
     "steem": {
         "ui_url": "https://steemit.com",
-        "posting_key": "posting key",
-        "account": "espoem",
+        "posting_key": "",
+        "account": "",
         "reviewers": [
             "espoem",
             "elear",
@@ -30,8 +30,8 @@
     },
     "discord": {
         "webhooks": {
-            "tasks": "discord webhook url",
-            "contributions": "discord webhook url"
+            "tasks": "",
+            "contributions": ""
         }
     }
 }

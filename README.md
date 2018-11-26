@@ -12,15 +12,22 @@ Requirements:
 
 Installation steps:
 
-*Utbot is not distributed in PyPi at the moment but you can install it locally.*
+_Utbot is not distributed in PyPi at the moment but you can install it locally._
 
-```
+```bash
 python -m venv venv
 . venv/bin/activate
 (venv) python install -e .
 ```
 
-You need to set your bot's steem account and its private posting key, and the webhook URL.
+You need to set keys to a Steem account and a Discord webhooks URLs. You can set them either in a `./utbot/config.json` file or as an environment variables. You can also use `.env` file to keep your environment variables.
+
+```bash
+UT_PK= bot private posting key
+UT_ACCOUNT= bot steem account
+UT_WH_TASKS= discor webhook url
+UT_WH_CONTRS= discord webhook url
+```
 
 ## Commands
 
@@ -36,13 +43,13 @@ A bot will respond with a short message that will navigate you to bot's potentia
 
 Utbot handles a few of different parameters format. The intention was to allow to use inline format and also accept a format where each parameter is written on a separate line.
 
-```
+```bash
 !utbot --status open --bounty 10 SBD --description "Short description of the task" --skills "Python, Flask, Steem" --deadline 2018-01-01 --discord <@351997733646761985>
 ```
 
 <hr/>
 
-```
+```bash
 !utbot
 status: open
 bounty: 10 SBD
@@ -54,18 +61,27 @@ discord: <@351997733646761985>
 
 #### Parameters
 
-| Name | Values | Note| Status |
-|-|-|-|-|
-|status | open \| in progress \| closed | a status of a task request | **required** |
-|bounty| 00 NAME | e.g. 10 SBD <br/> a bounty may contain more currencies delimited by comma | optional |
-| description | "text" | text must be enclosed in double quotes | optional |
-| skills | "skill1, skill2, skill3" | a set of skills separated by comma; must be enclosed in double quotes | optional|
-| discord | <@0000000000> \| username#0000 | a user ID or username with discriminator | optional |
-| deadline | 2018-01-01 | a date in format YYYY-MM-DD | optional |
-| assignees | "\@steemname1, \@steemname2" | Steem mentions of assigned people; valid only for a task that is in progress | optional |
+| Name        | Values                         | Note                                                                         | Status       |
+| ----------- | ------------------------------ | ---------------------------------------------------------------------------- | ------------ |
+| status      | open \| in progress \| closed  | a status of a task request                                                   | **required** |
+| bounty      | 00 NAME                        | e.g. 10 SBD <br/> a bounty may contain more currencies delimited by comma    | optional     |
+| description | "text"                         | text must be enclosed in double quotes                                       | optional     |
+| skills      | "skill1, skill2, skill3"       | a set of skills separated by comma; must be enclosed in double quotes        | optional     |
+| discord     | <@0000000000> \| username#0000 | a user ID or username with discriminator                                     | optional     |
+| deadline    | 2018-01-01                     | a date in format YYYY-MM-DD                                                  | optional     |
+| assignees   | "\@steemname1, \@steemname2"   | Steem mentions of assigned people; valid only for a task that is in progress | optional     |
 
-*You can obtain the Discord user ID by submitting `\@usermention` in a channel they are in or after enabling developers tools you can right click on a user's avatar and copy the ID.*
+_You can obtain the Discord user ID by submitting `\@usermention` in a channel they are in or you can right click on a user's avatar and copy the ID after enabling developers tools._
 
 ## Discord Message Examples
 
 ![example1](https://i.imgsafe.org/ac/aca679c48a.png)
+
+## TODO
+
+- [ ] Implement webhook for contributions
+  - add contribution when reviewed
+  - include basic information about the contribution
+- [ ] Add "new, update, remove" kind of commands to the bot
+- [ ] Tests
+- [ ] (Semi-)automatically submit a task message when reviewed but the reviewer did not call the bot
