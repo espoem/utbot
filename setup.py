@@ -10,7 +10,7 @@ def load_description():
         return f.read()
 
 
-requirements = ["beem", "discord-webhook"]
+requirements = ["beem", "discord-webhook", "python-dotenv"]
 
 setup(
     name="utbot",

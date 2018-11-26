@@ -6,8 +6,9 @@ venv
 __pycache__
 *.egg-info
 
-config.json
+# config.json
 *_example.py
 
 *.log
 *.log.*
+.env
