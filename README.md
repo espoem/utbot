@@ -12,7 +12,7 @@ Requirements:
 
 Installation steps:
 
-*Utbot is not distributed in PyPi at the moment but you can install it locally.*
+_Utbot is not distributed in PyPi at the moment but you can install it locally._
 
 ```bash
 python -m venv venv
@@ -61,17 +61,17 @@ discord: <@351997733646761985>
 
 #### Parameters
 
-| Name | Values | Note| Status |
-|-|-|-|-|
-|status | open \| in progress \| closed | a status of a task request | **required** |
-|bounty| 00 NAME | e.g. 10 SBD <br/> a bounty may contain more currencies delimited by comma | optional |
-| description | "text" | text must be enclosed in double quotes | optional |
-| skills | "skill1, skill2, skill3" | a set of skills separated by comma; must be enclosed in double quotes | optional|
-| discord | <@0000000000> \| username#0000 | a user ID or username with discriminator | optional |
-| deadline | 2018-01-01 | a date in format YYYY-MM-DD | optional |
-| assignees | "\@steemname1, \@steemname2" | Steem mentions of assigned people; valid only for a task that is in progress | optional |
+| Name        | Values                         | Note                                                                         | Status       |
+| ----------- | ------------------------------ | ---------------------------------------------------------------------------- | ------------ |
+| status      | open \| in progress \| closed  | a status of a task request                                                   | **required** |
+| bounty      | 00 NAME                        | e.g. 10 SBD <br/> a bounty may contain more currencies delimited by comma    | optional     |
+| description | "text"                         | text must be enclosed in double quotes                                       | optional     |
+| skills      | "skill1, skill2, skill3"       | a set of skills separated by comma; must be enclosed in double quotes        | optional     |
+| discord     | <@0000000000> \| username#0000 | a user ID or username with discriminator                                     | optional     |
+| deadline    | 2018-01-01                     | a date in format YYYY-MM-DD                                                  | optional     |
+| assignees   | "\@steemname1, \@steemname2"   | Steem mentions of assigned people; valid only for a task that is in progress | optional     |
 
-*You can obtain the Discord user ID by submitting `\@usermention` in a channel they are in or you can right click on a user's avatar and copy the ID after enabling developers tools.*
+_You can obtain the Discord user ID by submitting `\@usermention` in a channel they are in or you can right click on a user's avatar and copy the ID after enabling developers tools._
 
 ## Discord Message Examples
 
@@ -80,8 +80,8 @@ discord: <@351997733646761985>
 ## TODO
 
 - [ ] Implement webhook for contributions
-    - add contribution when reviewed
-    - include basic information about the contribution
+  - add contribution when reviewed
+  - include basic information about the contribution
 - [ ] Add "new, update, remove" kind of commands to the bot
 - [ ] Tests
 - [ ] (Semi-)automatically submit a task message when reviewed but the reviewer did not call the bot
