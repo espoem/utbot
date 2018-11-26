@@ -139,7 +139,7 @@ def listen_blockchain_comments():
 
     """
     for comment_op in listen_blockchain_ops(["comment"]):
-        if comment_op["parent_author"] or comment_op["author"] not in ACCOUNTS:
+        if not comment_op["parent_author"] or comment_op["author"] not in ACCOUNTS:
             continue
         try:
             comment = Comment(f'@{comment_op["author"]}/{comment_op["permlink"]}')
