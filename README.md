@@ -17,7 +17,7 @@ _Utbot is not distributed in PyPi at the moment but you can install it locally._
 ```bash
 python -m venv venv
 . venv/bin/activate
-(venv) python install -e .
+(venv) python -m pip install -e .
 ```
 
 You need to set keys to a Steem account and a Discord webhooks URLs. You can set them either in a `./utbot/config.json` file or as an environment variables. You can also use `.env` file to keep your environment variables.
