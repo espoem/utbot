@@ -135,7 +135,8 @@ def listen_blockchain_ops(opNames: list):
 
 
 def listen_blockchain_comments():
-    """Listens to blockchain for comments by specified accounts at Utopian task request posts and put them to a queue.
+    """Listens to blockchain for comments by specified accounts at
+    Utopian task request posts and put them to a queue.
 
     """
     for comment_op in listen_blockchain_ops(["comment"]):
@@ -168,7 +169,8 @@ def background():
 
 def build_help_message():
     msg_parts = [
-        "Hi, you called for help. Brief examples of the bot calls are included below. You can read about the parameters in the bot [description]({bot_docs}).",
+        "Hi, you called for help. Brief examples of the bot calls are included below. "
+        "You can read about the parameters in the bot [description]({bot_docs}).",
         "<hr/>",
         f"```\n{MSG_TASK_EXAMPLE_ONE_LINE}\n```",
         "<hr/>",
@@ -183,7 +185,9 @@ def build_help_message():
 
 def build_missing_status_message():
     msg_parts = [
-        f"Hello, we detected that you wanted to call {BOT_NAME} without defining the current status of the task. Please read the bot's [description]({BOT_REPO_URL}) to know about the bot valid parameters."
+        f"Hello, we detected that you wanted to call {BOT_NAME} without defining the current "
+        f"status of the task. Please read the bot's [description]({BOT_REPO_URL}) "
+        "to know about the bot valid parameters."
     ]
     msg = "\n\n".join(msg_parts)
     return msg
