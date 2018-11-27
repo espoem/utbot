@@ -37,7 +37,7 @@ from utils import (
 QUEUE_COMMENTS = Queue(maxsize=0)
 
 # Logger
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def build_discord_tr_embed(comment: dict, cmds_args: dict) -> DiscordEmbed:
@@ -144,17 +144,17 @@ def listen_blockchain_comments():
         try:
             comment = Comment(f'@{comment_op["author"]}/{comment_op["permlink"]}')
         except beem.exceptions.ContentDoesNotExistsException:
-            LOGGER.info(
+            logger.info(
                 "Comment does not exist. %s",
                 f'@{comment_op["author"]}/{comment_op["permlink"]}',
             )
         except:
-            LOGGER.exception()
+            logger.exception()
         else:
             root = comment.get_parent()
-            LOGGER.debug("%s, %s", comment["url"], root["url"])
+            logger.debug("%s, %s", comment["url"], root["url"])
             if is_utopian_task_request(root):
-                LOGGER.info(
+                logger.info(
                     "Added to comments queue - %s %s", comment["url"], root["url"]
                 )
                 QUEUE_COMMENTS.put_nowait((comment, root))
@@ -213,12 +213,12 @@ def reply_message(parent_comment: Comment, message: str, account: str, retry: in
 
 def send_help_message(comment: Comment, account: str, retry: int = 3):
     reply_message(comment, build_help_message(), account, retry)
-    LOGGER.info("Help message sent to %s", comment["url"])
+    logger.info("Help message sent to %s", comment["url"])
 
 
 def send_missing_status_message(comment: Comment, account: str, retry: int = 3):
     reply_message(comment, build_missing_status_message(), account, retry)
-    LOGGER.info("Missing status parameter message sent to %s", comment["url"])
+    logger.info("Missing status parameter message sent to %s", comment["url"])
 
 
 def main():
@@ -230,17 +230,17 @@ def main():
 
         comment: Comment = queue_item[0]
         cmd_str = comment["body"]
-        LOGGER.debug(cmd_str)
+        logger.debug(cmd_str)
         parsed_cmd = parse_command(cmd_str)
         if parsed_cmd is None:
-            LOGGER.info("No command found")
+            logger.info("No command found")
             QUEUE_COMMENTS.task_done()
             continue
         elif parsed_cmd["help"] is not None and comment["author"] != ACCOUNT:
             replied = False
             for reply in comment.get_replies():
                 if reply["author"] == ACCOUNT:
-                    LOGGER.info("Already replied with help command. %s", comment["url"])
+                    logger.info("Already replied with help command. %s", comment["url"])
                     replied = True
                     break
             if not replied:
@@ -255,7 +255,7 @@ def main():
         root_comment = queue_item[1]
         category = get_category(root_comment, TASKS_PROPERTIES)
         if category is None:
-            LOGGER.info("No valid category found. %s", root_comment["url"])
+            logger.info("No valid category found. %s", root_comment["url"])
             QUEUE_COMMENTS.task_done()
             continue
         category = TASKS_PROPERTIES[category]["category"]
@@ -270,6 +270,6 @@ def main():
 
 if __name__ == "__main__":
     setup_logger()
-    LOGGER.info("Utbot started")
+    logger.info("Utbot started")
     background()
     main()

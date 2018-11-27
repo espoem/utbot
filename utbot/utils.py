@@ -7,7 +7,7 @@ import json
 
 from constants import CATEGORIES_PROPERTIES, CMD_RE, TASKS_PROPERTIES, UI_BASE_URL
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def parse_command(cmd_str: str) -> dict:
@@ -21,7 +21,7 @@ def parse_command(cmd_str: str) -> dict:
     found = CMD_RE.search(cmd_str)
     if not found:
         return None
-    LOGGER.info("Command parsed. %s", found.groupdict())
+    logger.info("Command parsed. %s", found.groupdict())
     return found.groupdict()
 
 
