@@ -26,7 +26,6 @@ from utils import (
     accounts_str_to_md_links,
     build_comment_link,
     get_category,
-    is_utopian_contribution,
     is_utopian_task_request,
     normalize_str,
     parse_command,
