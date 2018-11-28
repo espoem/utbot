@@ -1,42 +1,182 @@
+import json
+import logging
+import os
 import queue
 import time
+from datetime import datetime
 from queue import Queue
 from threading import Thread
-import logging
 
 import beem
-from beem.account import Account
+import requests
 from beem.blockchain import Blockchain
 from beem.comment import Comment
-from discord_webhook import DiscordEmbed, DiscordWebhook
 
 from constants import (
+    ACCOUNT,
     ACCOUNTS,
-    MSG_TASK_EXAMPLE_MULT_LINES,
-    MSG_TASK_EXAMPLE_ONE_LINE,
+    CATEGORIES_PROPERTIES,
+    DISCORD_WEBHOOK_CONTRIBUTIONS,
+    DISCORD_WEBHOOK_TASKS,
     TASKS_PROPERTIES,
     UI_BASE_URL,
-    BOT_PREFIX,
-    BOT_NAME,
-    BOT_REPO_URL,
-    ACCOUNT,
-    DISCORD_WEBHOOK_TASKS,
 )
+from discord_webhook import DiscordEmbed, DiscordWebhook
 from utils import (
     accounts_str_to_md_links,
     build_comment_link,
+    build_help_message,
+    build_missing_status_message,
+    build_steem_account_link,
     get_category,
+    infinite_loop,
     is_utopian_task_request,
     normalize_str,
     parse_command,
+    reply_message,
     setup_logger,
 )
 
 # Queue
 QUEUE_COMMENTS = Queue(maxsize=0)
 
+# Utopian Rocks
+UR_BASE_URL = "https://utopian.rocks"
+UR_BATCH_CONTRIBUTIONS_URL = "/".join([UR_BASE_URL, "api", "batch", "contributions"])
+UR_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+queue_contributions = Queue(maxsize=0)
+last_seen_time = datetime.strftime(datetime.utcnow(), UR_DATE_FORMAT)
+
 # Logger
 logger = logging.getLogger(__name__)
+
+####################################
+# CONTRIBUTIONS
+####################################
+
+
+def build_contribution_embed(contribution: dict):
+    color = 0
+    thumbnail_url = None
+    category = contribution.get("category")
+    if category:
+        color = int(CATEGORIES_PROPERTIES[category]["color"][1:], 16)
+        thumbnail_url = CATEGORIES_PROPERTIES[category]["image_url"]
+    embed = DiscordEmbed(title=contribution.get("title"))
+    embed.set_color(color=color)
+    embed.set_thumbnail(url=thumbnail_url)
+    author = contribution.get("author")
+    if author:
+        embed.set_author(
+            name=author,
+            url=build_steem_account_link(author),
+            icon_url=f"https://steemitimages.com/u/{author}/avatar",
+        )
+    if category:
+        category_text = category
+    else:
+        category_text = "Unknown"
+    embed.add_embed_field(name="Category", value=category_text.upper(), inline=True)
+    embed.add_embed_field(
+        name="Reviewer", value=contribution.get("moderator", "Unknown"), inline=True
+    )
+    embed.add_embed_field(
+        name="Score", value=str(contribution.get("score", "Unknown")), inline=True
+    )
+    staff_picked = "Yes" if contribution.get("staff_picked") is True else "No"
+    embed.add_embed_field(name="Picked by staff", value=staff_picked, inline=True)
+    embed.add_embed_field(
+        name="Created at", value=contribution.get("created", "Unknown"), inline=True
+    )
+    embed.add_embed_field(
+        name="Reviewed at",
+        value=contribution.get("review_date", "Unknown"),
+        inline=True,
+    )
+    logger.debug("%s", embed.__dict__)
+    return embed
+
+
+def process_reviewed_contributions():
+    """Sends messages with Discord Webhook."""
+    try:
+        contr = queue_contributions.get_nowait()
+        logger.debug("%s", contr)
+    except queue.Empty:
+        return
+
+    logger.debug("%s", contr)
+    body = f"<{contr['url']}>"
+    embeds = [build_contribution_embed(contr)]
+    send_message_to_discord(DISCORD_WEBHOOK_CONTRIBUTIONS, body, embeds)
+    queue_contributions.task_done()
+
+
+def fetch_to_vote_contributions(session, url: str, retry: int = 3):
+    """Fetches reviewed contributions from utopian.rocks that will be voted.
+    \
+    :param session: Requests session
+    :type session:
+    :param url: utopian.rocks url for contributions
+    :type url: str
+    :param retry: Number of tries
+    :type retry: int
+    :return: Response from utopian.rocks
+    :rtype:
+    """
+    while retry > 0:
+        logger.info("Fetching contributions %s", url)
+        resp = session.get(url)
+        if resp.status_code != 200:
+            retry -= 1
+            time.sleep(10)
+            continue
+        logger.debug("%s", resp.json())
+        return resp.json()
+    return None
+
+
+def filter_contributions(contributions: list) -> list:
+    """Filters out already reviewed contributions and task requests.
+
+    :param contributions: contributions from utopian.rocks
+    :type contributions: list
+    :return: list of filtered contributions
+    :rtype: list
+    """
+    tasks = set(TASKS_PROPERTIES.keys())
+    filtered = [
+        c
+        for c in contributions
+        if c["review_date"] > last_seen_time and c["category"] not in tasks
+    ]
+    logger.debug("Contributions: %s", filtered)
+    return filtered
+
+
+def put_contributions_to_queue():
+    """Puts new reviewed contributions to a queue for processing."""
+    global last_seen_time
+    with requests.Session() as session:
+        contributions = fetch_to_vote_contributions(session, UR_BATCH_CONTRIBUTIONS_URL)
+        logger.info("Fetched %d contributions from utopian.rocks", len(contributions))
+        logger.debug(contributions)
+        if not contributions:
+            return
+    if isinstance(contributions, str):
+        contributions = json.loads(contributions)
+    contributions = filter_contributions(contributions)
+    logger.info("%d new contributions", len(contributions))
+    for c in contributions:
+        logger.debug("Adding to queue: %s", c)
+        queue_contributions.put_nowait(c)
+        if c["review_date"] > last_seen_time:
+            last_seen_time = c["review_date"]
+
+
+#############################################
+# TASKS
+#############################################
 
 
 def build_discord_tr_embed(comment: dict, cmds_args: dict) -> DiscordEmbed:
@@ -57,20 +197,15 @@ def build_discord_tr_embed(comment: dict, cmds_args: dict) -> DiscordEmbed:
         thumbnail = TASKS_PROPERTIES[category]["image_url"]
 
     title = f'{comment["title"]}'
-    description_parts = []
-    if cmds_args.get("description") is not None:
-        description_parts.append(cmds_args["description"].strip())
-    # description_parts.append(
-    #     f'*You can read [here]({build_comment_link(comment)}) the whole task by **{comment["author"]}**.*'
-    # )
-
-    description = "\n\n".join(description_parts)
+    description = None
+    if cmds_args.get("description"):
+        description = cmds_args["description"].strip()
     embed = DiscordEmbed(title=title, description=description)
-    author = Account(comment["author"])
+    author = comment["author"]
     embed.set_author(
-        name=author.name,
-        url=f"{UI_BASE_URL}/@{author.name}",
-        icon_url=author.profile.get("profile_image"),
+        name=author,
+        url=f"{UI_BASE_URL}/@{author}",
+        icon_url=f"https://steemitimages.com/u/{author}/avatar",
     )
     embed.set_color(color)
     embed.set_footer(text="Verified by Utopian.io team")
@@ -121,15 +256,15 @@ def build_discord_tr_embed(comment: dict, cmds_args: dict) -> DiscordEmbed:
     return embed
 
 
-def listen_blockchain_ops(opNames: list):
+def listen_blockchain_ops(op_names: list):
     """Listens to Steem blockchain and yields specified operations.
 
-    :param opNames: List of operations to yield
-    :type opNames: list
+    :param op_names: List of operations to yield
+    :type op_names: list
     """
     bc = Blockchain(mode="head")
     block_num = bc.get_current_block_num()
-    for op in bc.stream(opNames=opNames, start=block_num, threading=True):
+    for op in bc.stream(opNames=op_names, start=block_num, threading=True):
         yield op
 
 
@@ -149,7 +284,7 @@ def listen_blockchain_comments():
                 f'@{comment_op["author"]}/{comment_op["permlink"]}',
             )
         except:
-            logger.exception()
+            logger.exception("Error while fetching comment")
         else:
             root = comment.get_parent()
             logger.debug("%s, %s", comment["url"], root["url"])
@@ -160,58 +295,59 @@ def listen_blockchain_comments():
                 QUEUE_COMMENTS.put_nowait((comment, root))
 
 
-def background():
-    t = Thread(target=listen_blockchain_comments)
-    t.setDaemon(True)
-    t.start()
+def process_cmd_comments():
+    try:
+        queue_item = QUEUE_COMMENTS.get_nowait()
+    except queue.Empty:
+        return
+
+    comment: Comment = queue_item[0]
+    cmd_str = comment["body"]
+    logger.debug(cmd_str)
+    parsed_cmd = parse_command(cmd_str)
+    if parsed_cmd is None:
+        logger.info("No command found in %s", comment["url"])
+        QUEUE_COMMENTS.task_done()
+        return
+    elif parsed_cmd["help"] is not None and comment["author"] != ACCOUNT:
+        replied = False
+        for reply in comment.get_replies():
+            if reply["author"] == ACCOUNT:
+                logger.info("Already replied with help command to %s", comment["url"])
+                replied = True
+                break
+        if not replied:
+            send_help_message(comment, ACCOUNT)
+        QUEUE_COMMENTS.task_done()
+        return
+    if parsed_cmd.get("status") is None:
+        if len([x for x in parsed_cmd if parsed_cmd[x] is not None]) > 1:
+            send_missing_status_message(comment, ACCOUNT)
+        QUEUE_COMMENTS.task_done()
+        return
+    root_comment = queue_item[1]
+    category = get_category(root_comment, TASKS_PROPERTIES)
+    if category is None:
+        logger.info("No valid category found. %s", root_comment["url"])
+        QUEUE_COMMENTS.task_done()
+        return
+    content = f'[{parsed_cmd["status"].upper()}] <{build_comment_link(root_comment)}>'
+    embeds = [build_discord_tr_embed(root_comment, parsed_cmd)]
+    send_message_to_discord(DISCORD_WEBHOOK_TASKS, content, embeds)
+    QUEUE_COMMENTS.task_done()
 
 
-def build_help_message():
-    msg_parts = [
-        "Hi, you called for help. Brief examples of the bot calls are included below. "
-        "You can read about the parameters in the bot [description]({bot_docs}).",
-        "<hr/>",
-        f"```\n{MSG_TASK_EXAMPLE_ONE_LINE}\n```",
-        "<hr/>",
-        f"```\n{MSG_TASK_EXAMPLE_MULT_LINES}\n```",
-    ]
-    msg = "\n\n".join(msg_parts).format(
-        prefix=BOT_PREFIX, bot_name=BOT_NAME, bot_docs=BOT_REPO_URL
-    )
-
-    return msg
+################################
+# MISC
+################################
 
 
-def build_missing_status_message():
-    msg_parts = [
-        f"Hello, we detected that you wanted to call {BOT_NAME} without defining the current "
-        f"status of the task. Please read the bot's [description]({BOT_REPO_URL}) "
-        "to know about the bot valid parameters."
-    ]
-    msg = "\n\n".join(msg_parts)
-    return msg
-
-
-def reply_message(parent_comment: Comment, message: str, account: str, retry: int = 3):
-    """Replies to a comment with a specific message.
-
-    :param parent_comment: Parent comment to reply to
-    :type parent_comment: Comment
-    :param message: Message content
-    :type message: str
-    :param account: Author of the reply
-    :type account: str
-    :param retry: Number of retries, defaults to 3
-    :param retry: int, optional
-    """
-    while retry > 0:
-        try:
-            parent_comment.reply(body=message, author=account)
-        except:
-            time.sleep(3)
-            retry -= 1
-        else:
-            break
+def send_message_to_discord(webhook_url: str, content: str, embeds: list):
+    webhook = DiscordWebhook(url=webhook_url, content=content)
+    for embed in embeds:
+        webhook.add_embed(embed)
+    logger.debug(webhook.__dict__)
+    webhook.execute()
 
 
 def send_help_message(comment: Comment, account: str, retry: int = 3):
@@ -224,55 +360,28 @@ def send_missing_status_message(comment: Comment, account: str, retry: int = 3):
     logger.info("Missing status parameter message sent to %s", comment["url"])
 
 
-def main():
-    while True:
-        try:
-            queue_item = QUEUE_COMMENTS.get_nowait()
-        except queue.Empty:
-            continue
-
-        comment: Comment = queue_item[0]
-        cmd_str = comment["body"]
-        logger.debug(cmd_str)
-        parsed_cmd = parse_command(cmd_str)
-        if parsed_cmd is None:
-            logger.info("No command found")
-            QUEUE_COMMENTS.task_done()
-            continue
-        elif parsed_cmd["help"] is not None and comment["author"] != ACCOUNT:
-            replied = False
-            for reply in comment.get_replies():
-                if reply["author"] == ACCOUNT:
-                    logger.info("Already replied with help command. %s", comment["url"])
-                    replied = True
-                    break
-            if not replied:
-                send_help_message(comment, ACCOUNT)
-            QUEUE_COMMENTS.task_done()
-            continue
-        if parsed_cmd.get("status") is None:
-            if len([x for x in parsed_cmd if parsed_cmd[x] is not None]) > 1:
-                send_missing_status_message(comment, ACCOUNT)
-            QUEUE_COMMENTS.task_done()
-            continue
-        root_comment = queue_item[1]
-        category = get_category(root_comment, TASKS_PROPERTIES)
-        if category is None:
-            logger.info("No valid category found. %s", root_comment["url"])
-            QUEUE_COMMENTS.task_done()
-            continue
-        category = TASKS_PROPERTIES[category]["category"]
-        webhook = DiscordWebhook(
-            url=DISCORD_WEBHOOK_TASKS,
-            content=f'[{category.upper()}][{parsed_cmd["status"].upper()}] <{build_comment_link(root_comment)}>',
-        )
-        webhook.add_embed(build_discord_tr_embed(root_comment, parsed_cmd))
-        webhook.execute()
-        QUEUE_COMMENTS.task_done()
+def background():
+    if DISCORD_WEBHOOK_TASKS:
+        Thread(target=listen_blockchain_comments, daemon=True).start()
+        Thread(
+            target=infinite_loop, args=(process_cmd_comments, 1), daemon=True
+        ).start()
+    if DISCORD_WEBHOOK_CONTRIBUTIONS:
+        Thread(
+            target=infinite_loop, args=(put_contributions_to_queue, 180), daemon=True
+        ).start()
+        Thread(
+            target=infinite_loop, args=(process_reviewed_contributions, 2), daemon=True
+        ).start()
 
 
 if __name__ == "__main__":
-    setup_logger()
+    dirname = os.path.dirname(__file__)
+    setup_logger(os.path.join(dirname, "logger_config.json"))
     logger.info("Utbot started")
-    background()
-    main()
+    try:
+        background()
+        while True:
+            continue
+    except KeyboardInterrupt:
+        logger.info("Stopping Utbot")

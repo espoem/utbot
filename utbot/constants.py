@@ -5,7 +5,8 @@ import re
 from beem import Steem
 from beem.instance import set_shared_steem_instance
 from beem.nodelist import NodeList
-from dotenv import load_dotenv, find_dotenv
+
+from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
 here = os.path.dirname(__file__)
