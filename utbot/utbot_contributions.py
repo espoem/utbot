@@ -1,8 +1,9 @@
 import json
+import logging
 import queue
 import time
-from queue import Queue
 from datetime import datetime
+from queue import Queue
 from threading import Thread
 
 import requests
@@ -11,7 +12,6 @@ from beem.account import Account
 from constants import CATEGORIES_PROPERTIES, CONFIG, TASKS_PROPERTIES
 from discord_webhook import DiscordEmbed, DiscordWebhook
 from utils import build_steem_account_link, setup_logger
-import logging
 
 UR_BASE_URL = "https://utopian.rocks"
 UR_BATCH_CONTRIBUTIONS_URL = "/".join([UR_BASE_URL, "api", "batch", "contributions"])
