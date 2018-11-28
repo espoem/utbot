@@ -74,11 +74,7 @@ def build_contribution_embed(contribution):
         category_text = category
     else:
         category_text = "Unknown"
-    embed.add_embed_field(
-        name="Category",
-        value=category_text.upper(),
-        inline=True,
-    )
+    embed.add_embed_field(name="Category", value=category_text.upper(), inline=True)
     embed.add_embed_field(
         name="Reviewer", value=contribution.get("moderator", "Unknown"), inline=True
     )
@@ -102,9 +98,7 @@ def build_contribution_embed(contribution):
 def put_contributions_to_queue():
     global last_seen_time
     with requests.Session() as session:
-        contributions = fetch_to_vote_contributions(
-            session, UR_BATCH_CONTRIBUTIONS_URL
-        )
+        contributions = fetch_to_vote_contributions(session, UR_BATCH_CONTRIBUTIONS_URL)
         logger.debug(contributions)
         if not contributions:
             return
