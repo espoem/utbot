@@ -320,7 +320,7 @@ def process_cmd_comments():
             send_help_message(comment, ACCOUNT)
         QUEUE_COMMENTS.task_done()
         return
-    if parsed_cmd.get("status") is None:
+    if parsed_cmd["help"] is None and parsed_cmd.get("status") is None:
         if len([x for x in parsed_cmd if parsed_cmd[x] is not None]) > 1:
             send_missing_status_message(comment, ACCOUNT)
         QUEUE_COMMENTS.task_done()
