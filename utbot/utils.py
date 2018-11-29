@@ -181,4 +181,4 @@ def get_author_perm_from_url(url: str):
         return None
     parts = url.split("@")[1]
     parts = parts.split("/")
-    return parts[0], parts[1].split('#')[0]
+    return parts[0], parts[1].split("#")[0]

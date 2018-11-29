@@ -4,6 +4,7 @@ import os
 import queue
 import time
 from collections import defaultdict
+from datetime import datetime, timedelta
 from queue import Queue
 from threading import Thread
 
@@ -46,7 +47,8 @@ UR_BASE_URL = "https://utopian.rocks"
 UR_BATCH_CONTRIBUTIONS_URL = "/".join([UR_BASE_URL, "api", "batch", "contributions"])
 UR_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 queue_contributions = Queue(maxsize=0)
-seen_contributions = defaultdict(set)
+seen_contributions = defaultdict(dict)
+DATETIME_UTC_NOW = datetime.utcnow()
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -149,9 +151,15 @@ def filter_contributions(contributions: list) -> list:
     filtered = []
     for c in contributions:
         author, permlink = get_author_perm_from_url(c["url"])
-        if not permlink in seen_contributions[author] and c["category"] not in tasks:
+        review_date = datetime.strptime(c["review_date"], UR_DATE_FORMAT)
+        elapsed_time = (
+            seen_contributions[author].get(permlink, DATETIME_UTC_NOW)
+            + timedelta(minutes=4)
+            < review_date
+        )
+        if elapsed_time and c["category"] not in tasks:
             filtered.append(c)
-            seen_contributions[author].add(permlink)
+            seen_contributions[author][permlink] = review_date
     logger.debug("Contributions: %s", filtered)
     return filtered
 
