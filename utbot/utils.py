@@ -167,3 +167,18 @@ def reply_message(parent_comment: Comment, message: str, account: str, retry: in
             retry -= 1
         else:
             break
+
+
+def get_author_perm_from_url(url: str):
+    """Gets author and permlink from a URL link.
+
+    :param url: URL
+    :type url: str
+    :return: tuple with author and permlink
+    :rtype: tuple
+    """
+    if "@" not in url:
+        return None
+    parts = url.split("@")[1]
+    parts = parts.split("/")
+    return parts[0], parts[1].split('#')[0]
