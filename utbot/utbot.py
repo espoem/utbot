@@ -3,7 +3,8 @@ import logging
 import os
 import queue
 import time
-from datetime import datetime
+from collections import defaultdict
+from datetime import datetime, timedelta
 from queue import Queue
 from threading import Thread
 
@@ -28,6 +29,7 @@ from utils import (
     build_help_message,
     build_missing_status_message,
     build_steem_account_link,
+    get_author_perm_from_url,
     get_category,
     infinite_loop,
     is_utopian_task_request,
@@ -45,7 +47,8 @@ UR_BASE_URL = "https://utopian.rocks"
 UR_BATCH_CONTRIBUTIONS_URL = "/".join([UR_BASE_URL, "api", "batch", "contributions"])
 UR_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 queue_contributions = Queue(maxsize=0)
-last_seen_time = datetime.strftime(datetime.utcnow(), UR_DATE_FORMAT)
+seen_contributions = defaultdict(dict)
+DATETIME_UTC_NOW = datetime.utcnow()
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -145,18 +148,24 @@ def filter_contributions(contributions: list) -> list:
     :rtype: list
     """
     tasks = set(TASKS_PROPERTIES.keys())
-    filtered = [
-        c
-        for c in contributions
-        if c["review_date"] > last_seen_time and c["category"] not in tasks
-    ]
+    filtered = []
+    for c in contributions:
+        author, permlink = get_author_perm_from_url(c["url"])
+        review_date = datetime.strptime(c["review_date"], UR_DATE_FORMAT)
+        elapsed_time = (
+            seen_contributions[author].get(permlink, DATETIME_UTC_NOW)
+            + timedelta(minutes=4)
+            < review_date
+        )
+        if elapsed_time and c["category"] not in tasks:
+            filtered.append(c)
+            seen_contributions[author][permlink] = review_date
     logger.debug("Contributions: %s", filtered)
     return filtered
 
 
 def put_contributions_to_queue():
     """Puts new reviewed contributions to a queue for processing."""
-    global last_seen_time
     with requests.Session() as session:
         contributions = fetch_to_vote_contributions(session, UR_BATCH_CONTRIBUTIONS_URL)
         logger.info("Fetched %d contributions from utopian.rocks", len(contributions))
@@ -170,8 +179,6 @@ def put_contributions_to_queue():
     for c in contributions:
         logger.debug("Adding to queue: %s", c)
         queue_contributions.put_nowait(c)
-        if c["review_date"] > last_seen_time:
-            last_seen_time = c["review_date"]
 
 
 #############################################
