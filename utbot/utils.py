@@ -8,7 +8,6 @@ from datetime import datetime
 from beem.comment import Comment
 
 from constants import (
-    BOT_NAME,
     CATEGORIES_PROPERTIES,
     CMD_RE,
     TASKS_PROPERTIES,
@@ -175,7 +174,7 @@ def replied_to_comment(comment: Comment, account: str) -> typing.Optional[Commen
 def build_bot_tr_message(parsed_cmd: dict):
     parts = []
     intro_msg = (
-        f"Hello, {BOT_NAME} was called to collect basic information about this task."
+        "Hello, I was called to collect basic information about this task."
     )
     parts.append(intro_msg)
 
@@ -217,7 +216,7 @@ def build_bot_tr_message(parsed_cmd: dict):
         )
     parts.append(discord_msg)
 
-    outro_msg = f"<sub>The last at {datetime.strftime(datetime.utcnow(), '%Y-%m-%dT%H:%M:%SZ')}.</sub>"
+    outro_msg = f"<sub>The last update at {datetime.strftime(datetime.utcnow(), '%Y-%m-%dT%H:%M:%SZ')}.</sub>"
     parts.append(outro_msg)
 
     return "\n\n".join(parts)
