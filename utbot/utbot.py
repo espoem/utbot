@@ -316,8 +316,8 @@ def process_cmd_comments():
         logger.info("No command found in %s", comment["url"])
         QUEUE_COMMENTS.task_done()
         return
-    elif parsed_cmd["help"] is not None and comment["author"] != ACCOUNT:
-        if not replied_to_comment:
+    if parsed_cmd["help"] is not None and comment["author"] != ACCOUNT:
+        if not replied_to_comment(comment, ACCOUNT):
             if reply_message(comment, MESSAGES["HELP"], ACCOUNT):
                 logger.info("Help message replied to %s", comment["url"])
             else:
@@ -327,7 +327,7 @@ def process_cmd_comments():
         QUEUE_COMMENTS.task_done()
         return
     if parsed_cmd["help"] is None and parsed_cmd.get("status") is None:
-        if len([x for x in parsed_cmd if parsed_cmd[x] is not None]) > 1:
+        if len([x for x in parsed_cmd if parsed_cmd[x] is not None]) > 1 and not replied_to_comment(comment, ACCOUNT):
             if reply_message(comment, MESSAGES["STATUS_MISSING"], ACCOUNT):
                 logger.info("Missing status parameter message sent to %s", comment["url"])
             else:
