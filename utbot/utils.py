@@ -7,13 +7,8 @@ import typing
 from beem.comment import Comment
 
 from constants import (
-    BOT_NAME,
-    BOT_PREFIX,
-    BOT_REPO_URL,
     CATEGORIES_PROPERTIES,
     CMD_RE,
-    MSG_TASK_EXAMPLE_MULT_LINES,
-    MSG_TASK_EXAMPLE_ONE_LINE,
     TASKS_PROPERTIES,
     UI_BASE_URL,
 )
@@ -109,39 +104,6 @@ def infinite_loop(func, seconds, *args, **kwargs):
     while True:
         func(*args, **kwargs)
         time.sleep(seconds)
-
-
-def build_help_message():
-    """Creates a simple help message with a link to the github repository with details.
-    Contains an example of bot calling.
-
-    :return: Help message
-    """
-    msg_parts = [
-        "Hi, you called for help. Brief examples of the bot calls are included below. "
-        "You can read about the parameters in the bot [description]({bot_docs}).",
-        "<hr/>",
-        f"```\n{MSG_TASK_EXAMPLE_ONE_LINE}\n```",
-        "<hr/>",
-        f"```\n{MSG_TASK_EXAMPLE_MULT_LINES}\n```",
-    ]
-    msg = "\n\n".join(msg_parts).format(
-        prefix=BOT_PREFIX, bot_name=BOT_NAME, bot_docs=BOT_REPO_URL
-    )
-
-    return msg
-
-
-def build_missing_status_message():
-    """Creates a notice that status parameter was not included.
-    """
-    msg_parts = [
-        f"Hello, we detected that you wanted to call {BOT_NAME} without defining the current "
-        f"status of the task. Please read the bot's [description]({BOT_REPO_URL}) "
-        "to know about the bot valid parameters."
-    ]
-    msg = "\n\n".join(msg_parts)
-    return msg
 
 
 def reply_message(parent_comment: Comment, message: str, account: str, retry: int = 3):
