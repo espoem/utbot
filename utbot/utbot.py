@@ -154,7 +154,7 @@ def filter_contributions(contributions: list) -> list:
         review_date = datetime.strptime(c["review_date"], UR_DATE_FORMAT)
         elapsed_time = (
             seen_contributions[author].get(permlink, DATETIME_UTC_NOW)
-            + timedelta(minutes=4)
+            + timedelta(minutes=6)
             < review_date
         )
         if elapsed_time and c["category"] not in tasks:
