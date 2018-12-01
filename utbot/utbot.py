@@ -32,7 +32,6 @@ from utils import (
     get_category,
     infinite_loop,
     is_utopian_task_request,
-    normalize_str,
     parse_command,
     replied_to_comment,
     reply_message,
@@ -206,7 +205,7 @@ def build_discord_tr_embed(comment: dict, cmds_args: dict) -> DiscordEmbed:
     title = f'{comment["title"]}'
     description = None
     if cmds_args.get("description"):
-        description = cmds_args["description"].strip()
+        description = cmds_args["description"]
     embed = DiscordEmbed(title=title, description=description)
     author = comment["author"]
     embed.set_author(
@@ -231,29 +230,28 @@ def build_discord_tr_embed(comment: dict, cmds_args: dict) -> DiscordEmbed:
         return embed
 
     if cmds_args.get("skills"):
-        skills = normalize_str(cmds_args["skills"])
+        skills = ", ".join(cmds_args["skills"])
         embed.add_embed_field(name="Required skills", value=skills, inline=True)
 
-    if cmds_args.get("discord") is not None:
+    if cmds_args.get("discord"):
         embed.add_embed_field(
             name="Discord", value=f'{cmds_args["discord"]}', inline=True
         )
 
     if cmds_args.get("bounty"):
-        bounty = normalize_str(cmds_args["bounty"]).upper()
+        bounty = ", ".join(cmds_args["bounty"])
     else:
         bounty = "See the task details"
     embed.add_embed_field(name="Bounty", value=bounty, inline=True)
 
-    if cmds_args.get("deadline"):
-        deadline = cmds_args["deadline"]
-    else:
+    deadline = cmds_args.get("deadline")
+    if not deadline:
         deadline = "Not specified"
     embed.add_embed_field(name="Due date", value=deadline, inline=True)
 
     is_in_progress = status and status.upper() == "IN PROGRESS"
     if is_in_progress and cmds_args.get("assignees"):
-        assignees = normalize_str(cmds_args["assignees"]).lower()
+        assignees = ", ".join([f"@{a}" for a in cmds_args["assignees"]])
         assignees_links = accounts_str_to_md_links(assignees)
         embed.add_embed_field(name="Assignees", value=assignees_links, inline=False)
 

@@ -16,7 +16,7 @@ from constants import (
 logger = logging.getLogger(__name__)
 
 
-def parse_command(cmd_str: str) -> dict:
+def parse_command(cmd_str: str) -> typing.Optional[dict]:
     """Parses command in an arbitrary string.
 
     :param cmd_str: text
@@ -27,8 +27,20 @@ def parse_command(cmd_str: str) -> dict:
     found = CMD_RE.search(cmd_str)
     if not found:
         return None
-    logger.info("Command parsed. %s", found.groupdict())
-    return found.groupdict()
+    found = found.groupdict()
+    parsed_cmd = {
+        "help": found.get("help"),
+        "status": found.get("status"),
+        "bounty": [x.strip().upper() for x in found["bounty"].split(",")] if found.get("bounty") else None,
+        "description": found["description"].strip() if found.get("description") else None,
+        "note": found["note"].strip() if found.get("note") else None,
+        "skills": [s.strip() for s in found["skills"].split(",") if s.strip()] if found.get("skills") else None,
+        "discord": found.get("discord"),
+        "deadline": found.get("deadline"),
+        "assignees": [a.strip("@ ") for a in found["assignees"].split(',') if a.strip("@ ")] if found.get("assignees") else None
+    }
+    logger.info("Command parsed. %s", parsed_cmd)
+    return parsed_cmd
 
 
 def build_comment_link(comment: dict) -> str:
@@ -58,12 +70,6 @@ def get_category(comment: dict, categories: typing.Collection) -> str:
         if tag in categories:
             return tag
     return None
-
-
-def normalize_str(str_line: str) -> str:
-    items = str_line.split(",")
-    items = [a.strip() for a in items if a]
-    return ", ".join(items)
 
 
 def accounts_str_to_md_links(str_line: str) -> str:
