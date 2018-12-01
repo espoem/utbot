@@ -385,6 +385,7 @@ def send_summary_to_steem(
                 resp = STM.post(
                     body=build_bot_tr_message(parsed_cmd),
                     author=ACCOUNT,
+                    title="",
                     reply_identifier=root_comment.authorperm,
                     json_metadata={BOT_NAME: parsed_cmd},
                 )
