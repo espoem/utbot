@@ -203,7 +203,7 @@ MSG_TASK_EXAMPLE_ONE_LINE = f"{BOT_PREFIX}{BOT_NAME} " + " ".join(
 
 MESSAGES = {
     "HELP": "Hi, you called for help. Brief examples of the bot calls are included below. "
-    f"You can read about the parameters in the bot [description]({BOT_REPO_URL})."
+    f"You can read about the parameters in the bot's [description]({BOT_REPO_URL})."
     "\n\n<hr/>"
     f"\n\n```\n{MSG_TASK_EXAMPLE_ONE_LINE}\n```"
     "\n\n<hr/>"
