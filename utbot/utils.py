@@ -161,12 +161,13 @@ def reply_message(parent_comment: Comment, message: str, account: str, retry: in
             parent_comment.reply(body=message, author=account)
         except ValueError:
             logger.error("No Steem account provided. Can't reply on Steem.")
-            break
+            return False
         except:
             time.sleep(3)
             retry -= 1
         else:
-            break
+            return True
+    return False
 
 
 def get_author_perm_from_url(url: str):
@@ -182,3 +183,10 @@ def get_author_perm_from_url(url: str):
     parts = url.split("@")[1]
     parts = parts.split("/")
     return parts[0], parts[1].split("#")[0]
+
+
+def replied_to_comment(comment: Comment, account: str) -> typing.Optional[Comment]:
+    for reply in comment.get_replies():
+        if reply["author"] == account:
+            return reply
+    return None
