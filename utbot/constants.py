@@ -149,10 +149,10 @@ CMD_RE = re.compile(
         | (?:bounty:?\s+?(?P<bounty>(?:\s*?\d+(?:\.\d+?)?[ ]\w+(?:\s*?,\s*?)?)+))   # bounty 00 name[, 01 name2]
         | (?:description:?\s+?"(?P<description>.+?)")     # description "text"
         | (?:note:?\s+?"(?P<note>.+?)")     # note "text"
-        | (?:skills:?\s+?"(?P<skills>(?:[-_\w ]+(?:\s*?,?\s*?))+)")   # skills skillone[, skilltwo, ...]
+        | (?:skills:?\s+?"(?P<skills>(?:[-_\w ]+(?:\s*?,?\s*?))*)")   # skills skillone[, skilltwo, ...]
         | (?:discord:?\s+?(?P<discord><@!?\d+>|.+?[#]\d{4}))                 # <@00000000000> | username#0000
         | (?:deadline:?\s+?(?P<deadline>\d{4}-\d{2}-\d{2})(?:T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{4})?)?) # deadline YYYY-MM-DD (considers only date)
-        | (?:assignees:?\s+?"(?P<assignees>(?:@[\w\d.-]+(?:\s*?,\s*?)?)+)")  # naive regex
+        | (?:assignees:?\s+?"(?P<assignees>(?:@[\w\d.-]+(?:\s*?,\s*?)?)*)")  # naive regex
     );?)*
 )?
 """,
