@@ -27,8 +27,6 @@ from discord_webhook import DiscordEmbed, DiscordWebhook
 from utils import (
     accounts_str_to_md_links,
     build_comment_link,
-    build_help_message,
-    build_missing_status_message,
     build_steem_account_link,
     get_author_perm_from_url,
     get_category,
@@ -38,6 +36,7 @@ from utils import (
     parse_command,
     reply_message,
     setup_logger,
+    replied_to_comment,
 )
 
 # Queue
@@ -318,17 +317,13 @@ def process_cmd_comments():
         QUEUE_COMMENTS.task_done()
         return
     elif parsed_cmd["help"] is not None and comment["author"] != ACCOUNT:
-        replied = False
-        for reply in comment.get_replies():
-            if reply["author"] == ACCOUNT:
-                logger.info("Already replied with help command to %s", comment["url"])
-                replied = True
-                break
-        if not replied:
+        if not replied_to_comment:
             if reply_message(comment, MESSAGES["HELP"], ACCOUNT):
                 logger.info("Help message replied to %s", comment["url"])
             else:
                 logger.info("Couldn't reply to %s", comment["url"])
+        else:
+            logger.info("Already replied with help command to %s", comment["url"])
         QUEUE_COMMENTS.task_done()
         return
     if parsed_cmd["help"] is None and parsed_cmd.get("status") is None:
