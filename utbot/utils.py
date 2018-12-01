@@ -3,10 +3,17 @@ import logging
 import logging.config
 import time
 import typing
+from datetime import datetime
 
 from beem.comment import Comment
 
-from constants import CATEGORIES_PROPERTIES, CMD_RE, TASKS_PROPERTIES, UI_BASE_URL
+from constants import (
+    BOT_NAME,
+    CATEGORIES_PROPERTIES,
+    CMD_RE,
+    TASKS_PROPERTIES,
+    UI_BASE_URL,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -163,3 +170,54 @@ def replied_to_comment(comment: Comment, account: str) -> typing.Optional[Commen
         if reply["author"] == account:
             return reply
     return None
+
+
+def build_bot_tr_message(parsed_cmd: dict):
+    parts = []
+    intro_msg = (
+        f"Hello, {BOT_NAME} was called to collect basic information about this task."
+    )
+    parts.append(intro_msg)
+
+    status = parsed_cmd["status"].upper()
+    deadline = ""
+    if parsed_cmd["deadline"] and status != "CLOSED":
+        deadline = f" with an expected deadline **{parsed_cmd['deadline']}** to complete the task"
+    status_msg = f"This task is currently **{status}**{deadline}."
+    parts.append(status_msg)
+
+    if status in ["IN PROGRESS", "CLOSED"] and parsed_cmd["assignees"]:
+        assignees = ", ".join([f"@{a}" for a in parsed_cmd["assignees"]])
+        assignees_msg = f"The task has been assigned to **{assignees}**."
+        parts.append(assignees_msg)
+
+    if status != "CLOSED":
+        bounty_msg = (
+            "The solvers may reach a potential vote from @utopian-io as a part "
+            "of the reward by submitting the solution via Utopian.io."
+        )
+        if parsed_cmd["bounty"]:
+            bounty_msg = (
+                f"The requester put a bounty of **{', '.join(parsed_cmd['bounty'])}** on "
+                "top of a potential vote from Utopian.io for completing the task."
+            )
+        parts.append(bounty_msg)
+    else:
+        parts.append("Thanks to everyone who participated in this task.")
+
+    if parsed_cmd["discord"]:
+        discord_msg = (
+            f"You can reach out to the requester by sending them a message "
+            f"on the [Utopian Discord](https://discord.gg/azdmM3v). Their identifier is **{parsed_cmd['discord']}**."
+        )
+    else:
+        discord_msg = (
+            "Don't hesitate to join the [Utopian Discord](https://discord.gg/azdmM3v) "
+            "to learn more about the task."
+        )
+    parts.append(discord_msg)
+
+    outro_msg = f"<sub>The last at {datetime.strftime(datetime.utcnow(), '%Y-%m-%dT%H:%M:%SZ')}.</sub>"
+    parts.append(outro_msg)
+
+    return "\n\n".join(parts)

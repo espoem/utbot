@@ -16,16 +16,19 @@ from beem.comment import Comment
 from constants import (
     ACCOUNT,
     ACCOUNTS,
+    BOT_NAME,
     CATEGORIES_PROPERTIES,
     DISCORD_WEBHOOK_CONTRIBUTIONS,
     DISCORD_WEBHOOK_TASKS,
     MESSAGES,
+    STM,
     TASKS_PROPERTIES,
     UI_BASE_URL,
 )
 from discord_webhook import DiscordEmbed, DiscordWebhook
 from utils import (
     accounts_str_to_md_links,
+    build_bot_tr_message,
     build_comment_link,
     build_steem_account_link,
     get_author_perm_from_url,
@@ -343,6 +346,10 @@ def process_cmd_comments():
         QUEUE_COMMENTS.task_done()
         return
 
+    if ACCOUNT:
+        reply = replied_to_comment(root_comment, ACCOUNT)
+        send_summary_to_steem(parsed_cmd, reply, root_comment)
+
     if DISCORD_WEBHOOK_TASKS:
         content = (
             f'[{parsed_cmd["status"].upper()}] <{build_comment_link(root_comment)}>'
@@ -350,6 +357,45 @@ def process_cmd_comments():
         embeds = [build_discord_tr_embed(root_comment, parsed_cmd)]
         send_message_to_discord(DISCORD_WEBHOOK_TASKS, content, embeds)
     QUEUE_COMMENTS.task_done()
+
+
+def send_summary_to_steem(
+    parsed_cmd: dict, reply: Comment, root_comment: Comment, retry: int = 3
+):
+    while retry > 0:
+        if reply:
+            bot: dict = reply.json_metadata.get(BOT_NAME, {})
+            bot.update(parsed_cmd)
+            try:
+                resp = reply.edit(
+                    body=build_bot_tr_message(parsed_cmd),
+                    meta={BOT_NAME: bot},
+                    replace=True,
+                )
+            except:
+                logger.info("Can't submit a comment to %s", root_comment["url"])
+                logger.exception("Something went wrong.")
+                retry -= 1
+            else:
+                logger.info("Comment successfully updated at %s", root_comment["url"])
+                logger.debug(resp)
+                break
+        else:
+            try:
+                resp = STM.post(
+                    body=build_bot_tr_message(parsed_cmd),
+                    author=ACCOUNT,
+                    reply_identifier=root_comment.authorperm,
+                    json_metadata={BOT_NAME: parsed_cmd},
+                )
+            except:
+                logger.info("Can't submit a comment to %s", root_comment["url"])
+                logger.exception("Something went wrong.")
+                retry -= 1
+            else:
+                logger.info("Comment successfully sent to %s", root_comment["url"])
+                logger.debug(resp)
+                break
 
 
 ################################
