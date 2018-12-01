@@ -338,9 +338,11 @@ def process_cmd_comments():
         logger.info("No valid category found. %s", root_comment["url"])
         QUEUE_COMMENTS.task_done()
         return
-    content = f'[{parsed_cmd["status"].upper()}] <{build_comment_link(root_comment)}>'
-    embeds = [build_discord_tr_embed(root_comment, parsed_cmd)]
-    send_message_to_discord(DISCORD_WEBHOOK_TASKS, content, embeds)
+
+    if DISCORD_WEBHOOK_TASKS:
+        content = f'[{parsed_cmd["status"].upper()}] <{build_comment_link(root_comment)}>'
+        embeds = [build_discord_tr_embed(root_comment, parsed_cmd)]
+        send_message_to_discord(DISCORD_WEBHOOK_TASKS, content, embeds)
     QUEUE_COMMENTS.task_done()
 
 
@@ -368,11 +370,10 @@ def send_missing_status_message(comment: Comment, account: str, retry: int = 3):
 
 
 def background():
-    if DISCORD_WEBHOOK_TASKS:
-        Thread(target=listen_blockchain_comments, daemon=True).start()
-        Thread(
-            target=infinite_loop, args=(process_cmd_comments, 1), daemon=True
-        ).start()
+    Thread(target=listen_blockchain_comments, daemon=True).start()
+    Thread(
+        target=infinite_loop, args=(process_cmd_comments, 1), daemon=True
+    ).start()
     if DISCORD_WEBHOOK_CONTRIBUTIONS:
         Thread(
             target=infinite_loop, args=(put_contributions_to_queue, 180), daemon=True
