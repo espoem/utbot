@@ -19,9 +19,9 @@ from constants import (
     CATEGORIES_PROPERTIES,
     DISCORD_WEBHOOK_CONTRIBUTIONS,
     DISCORD_WEBHOOK_TASKS,
+    MESSAGES,
     TASKS_PROPERTIES,
     UI_BASE_URL,
-MESSAGES,
 )
 from discord_webhook import DiscordEmbed, DiscordWebhook
 from utils import (
@@ -34,9 +34,9 @@ from utils import (
     is_utopian_task_request,
     normalize_str,
     parse_command,
+    replied_to_comment,
     reply_message,
     setup_logger,
-    replied_to_comment,
 )
 
 # Queue
@@ -327,9 +327,13 @@ def process_cmd_comments():
         QUEUE_COMMENTS.task_done()
         return
     if parsed_cmd["help"] is None and parsed_cmd.get("status") is None:
-        if len([x for x in parsed_cmd if parsed_cmd[x] is not None]) > 1 and not replied_to_comment(comment, ACCOUNT):
+        if len(
+            [x for x in parsed_cmd if parsed_cmd[x] is not None]
+        ) > 1 and not replied_to_comment(comment, ACCOUNT):
             if reply_message(comment, MESSAGES["STATUS_MISSING"], ACCOUNT):
-                logger.info("Missing status parameter message sent to %s", comment["url"])
+                logger.info(
+                    "Missing status parameter message sent to %s", comment["url"]
+                )
             else:
                 logger.info("Couldn't reply to %s", comment["url"])
         QUEUE_COMMENTS.task_done()
