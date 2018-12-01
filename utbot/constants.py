@@ -152,7 +152,7 @@ CMD_RE = re.compile(
         | (?:skills:?\s+?"(?P<skills>(?:[-_\w ]+(?:\s*?,?\s*?))+)")   # skills skillone[, skilltwo, ...]
         | (?:discord:?\s+?(?P<discord><@!?\d+>|.+?[#]\d{4}))                 # <@00000000000> | username#0000
         | (?:deadline:?\s+?(?P<deadline>\d{4}-\d{2}-\d{2})(?:T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{4})?)?) # deadline YYYY-MM-DD (considers only date)
-        | (?:assignees:?\s+?"(?P<assignees>@(?:[\w\d.-]+(?:\s*?,\s*?)?)+)")  # naive regex
+        | (?:assignees:?\s+?"(?P<assignees>(?:@[\w\d.-]+(?:\s*?,\s*?)?)+)")  # naive regex
     );?)*
 )?
 """,
