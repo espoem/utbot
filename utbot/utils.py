@@ -6,12 +6,7 @@ import typing
 
 from beem.comment import Comment
 
-from constants import (
-    CATEGORIES_PROPERTIES,
-    CMD_RE,
-    TASKS_PROPERTIES,
-    UI_BASE_URL,
-)
+from constants import CATEGORIES_PROPERTIES, CMD_RE, TASKS_PROPERTIES, UI_BASE_URL
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +26,23 @@ def parse_command(cmd_str: str) -> typing.Optional[dict]:
     parsed_cmd = {
         "help": found.get("help"),
         "status": found.get("status"),
-        "bounty": [x.strip().upper() for x in found["bounty"].split(",")] if found.get("bounty") else None,
-        "description": found["description"].strip() if found.get("description") else None,
+        "bounty": [x.strip().upper() for x in found["bounty"].split(",")]
+        if found.get("bounty")
+        else None,
+        "description": found["description"].strip()
+        if found.get("description")
+        else None,
         "note": found["note"].strip() if found.get("note") else None,
-        "skills": [s.strip() for s in found["skills"].split(",") if s.strip()] if found.get("skills") else None,
+        "skills": [s.strip() for s in found["skills"].split(",") if s.strip()]
+        if found.get("skills")
+        else None,
         "discord": found.get("discord"),
         "deadline": found.get("deadline"),
-        "assignees": [a.strip("@ ") for a in found["assignees"].split(',') if a.strip("@ ")] if found.get("assignees") else None
+        "assignees": [
+            a.strip("@ ") for a in found["assignees"].split(",") if a.strip("@ ")
+        ]
+        if found.get("assignees")
+        else None,
     }
     logger.info("Command parsed. %s", parsed_cmd)
     return parsed_cmd
