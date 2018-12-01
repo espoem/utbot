@@ -162,28 +162,6 @@ CMD_RE = re.compile(
 ACCOUNTS = CONFIG["steem"]["reviewers"]
 UI_BASE_URL = CONFIG["steem"]["ui_url"]
 
-# MESSAGES
-MSG_TASK_HELP = (
-    "This is a help message for {prefix}{bot_name}."
-    "\n\nCurrent valid arguments are:"
-    "\n\n- status: [open, in progress, closed]"
-    "\n  - current status of the task; ***required***"
-    "\n- bounty: value name[, value name, ...]"
-    "\n  - set the liquid bounty you can pay for the task; ***optional***"
-    '\n- description: "task short description"'
-    "\n  - describe the task in one or two sentences; must be enclosed in double quotes; ***optional***"
-    '\n- skills: "skill1[, skill2, skill3]"'
-    "\n  - set of required skills to solve the task; skills must be enclosed in double quotes and separated by a comma; ***optional***"
-    "\n- discord: <@00000000000000> | username#0000"
-    "\n  - discord handle (user id or name); ***optional***"
-    "\n- deadline: YYYY-MM-DD"
-    "\n  - due date of the task; ***optional***"
-    "\n- assignees: @name1[, @name2, ...]"
-    "\n  - set of people (steem usernames) assigned to the task if it is in progress; ***optional***"
-    '\n- note: "additional notes"'
-    "\n  - miscellaneous notes; must be enclosed in double quotes; ***optional***"
-)
-
 TASK_EXAMPLE = {
     "status": "open",
     "bounty": "10 SBD",
