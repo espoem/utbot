@@ -21,6 +21,7 @@ from constants import (
     DISCORD_WEBHOOK_TASKS,
     TASKS_PROPERTIES,
     UI_BASE_URL,
+MESSAGES,
 )
 from discord_webhook import DiscordEmbed, DiscordWebhook
 from utils import (
@@ -324,12 +325,18 @@ def process_cmd_comments():
                 replied = True
                 break
         if not replied:
-            send_help_message(comment, ACCOUNT)
+            if reply_message(comment, MESSAGES["HELP"], ACCOUNT):
+                logger.info("Help message replied to %s", comment["url"])
+            else:
+                logger.info("Couldn't reply to %s", comment["url"])
         QUEUE_COMMENTS.task_done()
         return
     if parsed_cmd["help"] is None and parsed_cmd.get("status") is None:
         if len([x for x in parsed_cmd if parsed_cmd[x] is not None]) > 1:
-            send_missing_status_message(comment, ACCOUNT)
+            if reply_message(comment, MESSAGES["STATUS_MISSING"], ACCOUNT):
+                logger.info("Missing status parameter message sent to %s", comment["url"])
+            else:
+                logger.info("Couldn't reply to %s", comment["url"])
         QUEUE_COMMENTS.task_done()
         return
     root_comment = queue_item[1]
@@ -340,7 +347,9 @@ def process_cmd_comments():
         return
 
     if DISCORD_WEBHOOK_TASKS:
-        content = f'[{parsed_cmd["status"].upper()}] <{build_comment_link(root_comment)}>'
+        content = (
+            f'[{parsed_cmd["status"].upper()}] <{build_comment_link(root_comment)}>'
+        )
         embeds = [build_discord_tr_embed(root_comment, parsed_cmd)]
         send_message_to_discord(DISCORD_WEBHOOK_TASKS, content, embeds)
     QUEUE_COMMENTS.task_done()
@@ -359,21 +368,9 @@ def send_message_to_discord(webhook_url: str, content: str, embeds: list):
     webhook.execute()
 
 
-def send_help_message(comment: Comment, account: str, retry: int = 3):
-    reply_message(comment, build_help_message(), account, retry)
-    logger.info("Help message sent to %s", comment["url"])
-
-
-def send_missing_status_message(comment: Comment, account: str, retry: int = 3):
-    reply_message(comment, build_missing_status_message(), account, retry)
-    logger.info("Missing status parameter message sent to %s", comment["url"])
-
-
 def background():
     Thread(target=listen_blockchain_comments, daemon=True).start()
-    Thread(
-        target=infinite_loop, args=(process_cmd_comments, 1), daemon=True
-    ).start()
+    Thread(target=infinite_loop, args=(process_cmd_comments, 1), daemon=True).start()
     if DISCORD_WEBHOOK_CONTRIBUTIONS:
         Thread(
             target=infinite_loop, args=(put_contributions_to_queue, 180), daemon=True

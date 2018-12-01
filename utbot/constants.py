@@ -193,10 +193,21 @@ TASK_EXAMPLE = {
     "discord": "<@351997733646761985>",
 }
 
-MSG_TASK_EXAMPLE_MULT_LINES = "{prefix}{bot_name}\n" + "\n".join(
+MSG_TASK_EXAMPLE_MULT_LINES = f"{BOT_PREFIX}{BOT_NAME}\n" + "\n".join(
     f"{k}: {v}" for k, v in TASK_EXAMPLE.items()
 )
 
-MSG_TASK_EXAMPLE_ONE_LINE = "{prefix}{bot_name} " + " ".join(
+MSG_TASK_EXAMPLE_ONE_LINE = f"{BOT_PREFIX}{BOT_NAME} " + " ".join(
     f"--{k} {v}" for k, v in TASK_EXAMPLE.items()
 )
+
+MESSAGES = {
+    "HELP": "Hi, you called for help. Brief examples of the bot calls are included below. "
+    f"You can read about the parameters in the bot [description]({BOT_REPO_URL})."
+    "\n\n<hr/>"
+    f"\n\n```\n{MSG_TASK_EXAMPLE_ONE_LINE}\n```"
+    "\n\n<hr/>"
+    f"\n\n```\n{MSG_TASK_EXAMPLE_MULT_LINES}\n```",
+    "STATUS_MISSING": f"Hello, we detected that you called {BOT_NAME} without defining the current "
+    f"status of the task. Please read the bot's [description]({BOT_REPO_URL}).",
+}
