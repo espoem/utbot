@@ -206,8 +206,8 @@ def build_bot_tr_message(parsed_cmd: dict):
 
     if parsed_cmd["discord"]:
         discord_msg = (
-            f"You can reach out to the requester by sending them a message "
-            f"on the [Utopian Discord](https://discord.gg/azdmM3v). Their identifier is **{parsed_cmd['discord']}**."
+            "All contributors are encouraged to join the [Utopian Discord](https://discord.gg/azdmM3v)."
+            f" The requester's identifier is **{parsed_cmd['discord']}**."
         )
     else:
         discord_msg = (
@@ -216,7 +216,7 @@ def build_bot_tr_message(parsed_cmd: dict):
         )
     parts.append(discord_msg)
 
-    outro_msg = f"<sub>The last update at {datetime.strftime(datetime.utcnow(), '%Y-%m-%dT%H:%M:%SZ')}.</sub>"
+    outro_msg = f"<sub>Last update: {datetime.strftime(datetime.utcnow(), '%Y-%m-%dT%H:%M:%SZ')}.</sub>"
     parts.append(outro_msg)
 
     return "\n\n".join(parts)
